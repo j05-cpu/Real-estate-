@@ -1,24 +1,42 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar, { type TabId } from "@/components/Sidebar";
 import Analytics from "@/components/Analytics";
 import Scheduler from "@/components/Scheduler";
 import ChatLogs from "@/components/ChatLogs";
 import BotSettings from "@/components/BotSettings";
+import { useLeads } from "@/hooks/useLeads";
+import { useAppointments } from "@/hooks/useAppointments";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabId>("analytics");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Hoist data hooks so Sidebar can show badges and tabs share one poll
+  const leadsState      = useLeads();
+  const appointmentsState = useAppointments();
+
+  // Clear badge when user visits that tab
+  useEffect(() => {
+    if (activeTab === "analytics")  leadsState.clearNewCount();
+    if (activeTab === "scheduler")  appointmentsState.clearNewCount();
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const badges: Partial<Record<TabId, number>> = {
+    analytics: leadsState.newCount || undefined,
+    scheduler: appointmentsState.newCount || undefined,
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-900 text-slate-200">
 
-      {/* Sidebar */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        badges={badges}
+        leadsState={leadsState}
       />
 
       {/* Mobile top bar */}
@@ -43,8 +61,8 @@ export default function Dashboard() {
 
       {/* Main content */}
       <main className="flex-1 min-w-0 pt-14 md:pt-0 overflow-auto">
-        {activeTab === "analytics" && <Analytics />}
-        {activeTab === "scheduler" && <Scheduler />}
+        {activeTab === "analytics" && <Analytics leadsState={leadsState} />}
+        {activeTab === "scheduler" && <Scheduler appointmentsState={appointmentsState} />}
         {activeTab === "chat"      && <ChatLogs />}
         {activeTab === "settings"  && <BotSettings />}
       </main>
