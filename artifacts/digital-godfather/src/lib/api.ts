@@ -81,10 +81,9 @@ export async function fetchAppointments(): Promise<Appointment[]> {
 }
 
 export async function postSettings(settings: BotSettings): Promise<void> {
-  const res = await fetchWithTimeout(N8N_URLS.updateSettings, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
-  });
+  const params = new URLSearchParams(
+    Object.entries(settings).map(([k, v]) => [k, typeof v === "object" ? JSON.stringify(v) : String(v)])
+  );
+  const res = await fetchWithTimeout(`${N8N_URLS.updateSettings}?${params.toString()}`);
   if (!res.ok) throw new Error(`Settings update failed: ${res.status}`);
 }

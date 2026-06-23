@@ -44,7 +44,7 @@ AI-powered real estate automation SaaS dashboard for brokers to manage leads, si
 |-------------------|----------------------------------------------------------------------|--------|
 | Get Leads         | https://n8n-production-8556.up.railway.app/webhook/get-leads        | GET    |
 | Get Appointments  | https://n8n-production-8556.up.railway.app/webhook/get-appointments | GET    |
-| Update Settings   | https://n8n-production-8556.up.railway.app/webhook/update-settings  | POST   |
+| Update Settings   | https://n8n-production-8556.up.railway.app/webhook/update-settings  | GET    |
 
 ## User preferences
 
