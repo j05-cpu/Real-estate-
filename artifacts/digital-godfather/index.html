@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Godfather — Real Estate AI Platform</title>
+  <meta name="description" content="Digital Godfather — AI-powered real estate automation platform for brokers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            slate: {
+              850: '#1a2235',
+              925: '#0d1220',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow-red': 'glowRed 2s ease-in-out infinite',
+            'glow-yellow': 'glowYellow 2s ease-in-out infinite',
+            'glow-blue': 'glowBlue 2s ease-in-out infinite',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #0f172a; color: #e2e8f0; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Glowing metric cards */
+    .card-glow-purple {
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.15), inset 0 0 20px rgba(139, 92, 246, 0.05);
+    }
+    .card-glow-cyan {
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.15), inset 0 0 20px rgba(6, 182, 212, 0.05);
+    }
+    .card-glow-emerald {
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), inset 0 0 20px rgba(16, 185, 129, 0.05);
+    }
+
+    /* Badge glows */
+    .badge-hot {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+      animation: pulseHot 2s ease-in-out infinite;
+    }
+    .badge-warm {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+    }
+    .badge-cold {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      color: #3b82f6;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+    }
+
+    @keyframes pulseHot {
+      0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+      50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.6); }
+    }
+
+    /* Sidebar nav */
+    .nav-item {
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { background: rgba(139, 92, 246, 0.08); }
+    .nav-item.active {
+      background: rgba(139, 92, 246, 0.15);
+      border-left-color: #8b5cf6;
+      color: #a78bfa;
+    }
+
+    /* Tab content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Chat bubbles */
+    .chat-bubble-ai {
+      background: linear-gradient(135deg, #1e293b, #1a2235);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 0 12px 12px 12px;
+    }
+    .chat-bubble-user {
+      background: linear-gradient(135deg, #312e81, #1e1b4b);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 12px 0 12px 12px;
+    }
+
+    /* Toggle switch */
+    .toggle-switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155; border-radius: 28px; transition: 0.3s;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+      background-color: white; border-radius: 50%; transition: 0.3s;
+    }
+    input:checked + .slider { background-color: #ef4444; box-shadow: 0 0 12px rgba(239,68,68,0.5); }
+    input:checked + .slider:before { transform: translateX(24px); }
+
+    /* Drag drop zone */
+    .drop-zone {
+      border: 2px dashed rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.08);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+    }
+
+    /* Table row hover */
+    .table-row:hover { background: rgba(139, 92, 246, 0.05); }
+
+    /* Input styling */
+    .form-input {
+      background: #1e293b;
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      color: #e2e8f0;
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    }
+    .form-input::placeholder { color: #475569; }
+
+    /* Active contact highlight */
+    .contact-item { cursor: pointer; transition: all 0.2s; }
+    .contact-item:hover { background: rgba(139, 92, 246, 0.1); }
+    .contact-item.active { background: rgba(139, 92, 246, 0.15); border-left: 3px solid #8b5cf6; }
+
+    /* Calendar slot card */
+    .slot-card {
+      background: linear-gradient(135deg, #1e293b, #1a2235);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+      transition: all 0.25s;
+    }
+    .slot-card:hover {
+      border-color: rgba(139, 92, 246, 0.4);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.1);
+      transform: translateY(-2px);
+    }
+
+    /* Glow text */
+    .text-glow-purple { text-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
+    .text-glow-cyan { text-shadow: 0 0 20px rgba(6, 182, 212, 0.6); }
+
+    /* Sidebar mobile overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 30; backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed; top: 0; left: -280px; height: 100vh; z-index: 40;
+        transition: left 0.3s ease; width: 260px;
+      }
+      #sidebar.open { left: 0; }
+      #main-content { margin-left: 0 !important; }
+    }
+
+    /* Number counter animation */
+    @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .count-animate { animation: countUp 0.6s ease forwards; }
+
+    /* Green dot pulse */
+    .dot-pulse { animation: dotPulse 2s ease-in-out infinite; }
+    @keyframes dotPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+      50% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 min-h-screen">
+
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Mobile top bar -->
+  <div class="md:hidden fixed top-0 left-0 right-0 z-20 bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white transition-colors">
+      <i class="fas fa-bars text-xl"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center">
+        <i class="fas fa-crown text-white text-xs"></i>
+      </div>
+      <span class="font-bold text-white text-sm">Digital Godfather</span>
+    </div>
+    <div class="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-bold">R</div>
+  </div>
+
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col fixed md:relative h-screen overflow-y-auto shrink-0" style="z-index:40;">
+      
+      <!-- Logo area -->
+      <div class="px-5 py-6 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-purple-900 flex items-center justify-center shadow-lg" style="box-shadow: 0 0 16px rgba(139,92,246,0.4)">
+            <i class="fas fa-crown text-white text-sm"></i>
+          </div>
+          <div>
+            <div class="font-bold text-white text-sm leading-tight">Digital Godfather</div>
+            <div class="text-xs text-violet-400 font-medium">AI Real Estate Platform</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Status indicator -->
+      <div class="px-4 py-3 mx-3 mt-4 rounded-xl bg-slate-800 border border-slate-700">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-emerald-400 dot-pulse"></div>
+          <span class="text-xs text-emerald-400 font-semibold">Rohan AI — Online</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-1">Processing 12 leads right now</div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-3 mt-5 space-y-1">
+        <div class="text-xs text-slate-600 font-semibold uppercase tracking-widest px-3 mb-2">Main Menu</div>
+
+        <div class="nav-item active rounded-lg px-3 py-3 flex items-center gap-3" onclick="switchTab('analytics')">
+          <div class="w-8 h-8 rounded-lg bg-violet-900/50 flex items-center justify-center">
+            <i class="fas fa-chart-line text-violet-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">Analytics & Leads</div>
+            <div class="text-xs text-slate-500">87 leads tracked</div>
+          </div>
+        </div>
+
+        <div class="nav-item rounded-lg px-3 py-3 flex items-center gap-3" onclick="switchTab('scheduler')">
+          <div class="w-8 h-8 rounded-lg bg-cyan-900/30 flex items-center justify-center">
+            <i class="fas fa-calendar-check text-cyan-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">Site Visit Scheduler</div>
+            <div class="text-xs text-slate-500">8 upcoming visits</div>
+          </div>
+        </div>
+
+        <div class="nav-item rounded-lg px-3 py-3 flex items-center gap-3 relative" onclick="switchTab('chat')">
+          <div class="w-8 h-8 rounded-lg bg-emerald-900/30 flex items-center justify-center">
+            <i class="fab fa-whatsapp text-emerald-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">WhatsApp Chat Logs</div>
+            <div class="text-xs text-slate-500">5 active sessions</div>
+          </div>
+          <span class="ml-auto bg-emerald-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">5</span>
+        </div>
+
+        <div class="nav-item rounded-lg px-3 py-3 flex items-center gap-3" onclick="switchTab('settings')">
+          <div class="w-8 h-8 rounded-lg bg-orange-900/30 flex items-center justify-center">
+            <i class="fas fa-gear text-orange-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-sm font-medium">Bot Settings</div>
+            <div class="text-xs text-slate-500">Configure Rohan AI</div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Broker profile -->
+      <div class="px-3 py-4 border-t border-slate-800">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800 border border-slate-700">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white font-bold text-sm">RK</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-semibold text-white truncate">Rajesh Kumar</div>
+            <div class="text-xs text-slate-500 truncate">Broker · Panvel</div>
+          </div>
+          <button class="text-slate-500 hover:text-slate-300 transition-colors">
+            <i class="fas fa-ellipsis-vertical text-sm"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 min-w-0 ml-0 md:ml-0 pt-16 md:pt-0 overflow-auto">
+      
+      <!-- ============================================================ -->
+      <!-- TAB 1: Analytics & Leads -->
+      <!-- ============================================================ -->
+      <div id="tab-analytics" class="tab-content active p-4 md:p-6">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl md:text-2xl font-bold text-white">Analytics & Leads</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Monday, 23 June 2026 · Panvel Projects</p>
+          </div>
+          <button class="hidden md:flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors" style="box-shadow: 0 0 16px rgba(139,92,246,0.3)">
+            <i class="fas fa-download text-xs"></i> Export Report
+          </button>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          
+          <!-- Card 1 -->
+          <div class="card-glow-purple bg-slate-800/60 rounded-2xl p-5 backdrop-blur-sm">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-violet-900/60 flex items-center justify-center" style="box-shadow: 0 0 14px rgba(139,92,246,0.3)">
+                <i class="fas fa-robot text-violet-400 text-lg"></i>
+              </div>
+              <span class="text-xs text-emerald-400 bg-emerald-900/30 border border-emerald-800/50 px-2 py-0.5 rounded-full font-medium">+18% ↑</span>
+            </div>
+            <div class="text-3xl font-bold text-white count-animate mb-1">3,847</div>
+            <div class="text-sm text-slate-400 font-medium">Total AI Chats</div>
+            <div class="mt-3 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-violet-600 to-purple-400 rounded-full" style="width: 76%"></div>
+            </div>
+            <div class="text-xs text-slate-600 mt-1">76% engagement rate</div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="card-glow-cyan bg-slate-800/60 rounded-2xl p-5 backdrop-blur-sm">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-cyan-900/40 flex items-center justify-center" style="box-shadow: 0 0 14px rgba(6,182,212,0.3)">
+                <i class="fas fa-location-dot text-cyan-400 text-lg"></i>
+              </div>
+              <span class="text-xs text-emerald-400 bg-emerald-900/30 border border-emerald-800/50 px-2 py-0.5 rounded-full font-medium">+32% ↑</span>
+            </div>
+            <div class="text-3xl font-bold text-white count-animate mb-1">214</div>
+            <div class="text-sm text-slate-400 font-medium">Confirmed Site Visits</div>
+            <div class="mt-3 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-cyan-600 to-sky-400 rounded-full" style="width: 59%"></div>
+            </div>
+            <div class="text-xs text-slate-600 mt-1">59% conversion rate</div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="card-glow-emerald bg-slate-800/60 rounded-2xl p-5 backdrop-blur-sm">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-emerald-900/40 flex items-center justify-center" style="box-shadow: 0 0 14px rgba(16,185,129,0.3)">
+                <i class="fas fa-envelope text-emerald-400 text-lg"></i>
+              </div>
+              <span class="text-xs text-emerald-400 bg-emerald-900/30 border border-emerald-800/50 px-2 py-0.5 rounded-full font-medium">+24% ↑</span>
+            </div>
+            <div class="text-3xl font-bold text-white count-animate mb-1">9,128</div>
+            <div class="text-sm text-slate-400 font-medium">Emails Sent</div>
+            <div class="mt-3 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-emerald-600 to-teal-400 rounded-full" style="width: 88%"></div>
+            </div>
+            <div class="text-xs text-slate-600 mt-1">88% delivery rate</div>
+          </div>
+        </div>
+
+        <!-- Leads Table -->
+        <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 class="text-base font-semibold text-white">Live Lead Tracker</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Rohan AI-qualified leads · Real-time</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
+                <i class="fas fa-search text-slate-500 text-xs"></i>
+                <input type="text" placeholder="Search leads..." class="bg-transparent text-sm text-slate-300 placeholder-slate-600 outline-none w-28 md:w-40" id="leadSearch" oninput="filterLeads()" />
+              </div>
+              <button class="bg-slate-900 border border-slate-700 text-slate-400 hover:text-white rounded-xl px-3 py-2 text-sm transition-colors">
+                <i class="fas fa-filter text-xs mr-1"></i>Filter
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm" id="leadsTable">
+              <thead>
+                <tr class="border-b border-slate-700/50">
+                  <th class="text-left text-xs text-slate-500 uppercase tracking-wider px-5 py-3 font-semibold">Lead Name</th>
+                  <th class="text-left text-xs text-slate-500 uppercase tracking-wider px-4 py-3 font-semibold">Phone</th>
+                  <th class="text-left text-xs text-slate-500 uppercase tracking-wider px-4 py-3 font-semibold hidden md:table-cell">Email</th>
+                  <th class="text-left text-xs text-slate-500 uppercase tracking-wider px-4 py-3 font-semibold">BHK</th>
+                  <th class="text-left text-xs text-slate-500 uppercase tracking-wider px-4 py-3 font-semibold hidden sm:table-cell">Budget</th>
+                  <th class="text-left text-xs text-slate-500 uppercase tracking-wider px-4 py-3 font-semibold">AI Tag</th>
+                </tr>
+              </thead>
+              <tbody id="leadsTableBody">
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="px-5 py-3 border-t border-slate-700/50 flex items-center justify-between">
+            <span class="text-xs text-slate-500">Showing <span id="leadCount">10</span> of 87 leads</span>
+            <div class="flex items-center gap-1">
+              <button class="text-xs text-slate-400 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors">Prev</button>
+              <button class="text-xs text-white bg-violet-600 px-3 py-1.5 rounded-lg">1</button>
+              <button class="text-xs text-slate-400 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors">2</button>
+              <button class="text-xs text-slate-400 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 2: Site Visit Scheduler -->
+      <!-- ============================================================ -->
+      <div id="tab-scheduler" class="tab-content p-4 md:p-6">
+
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl md:text-2xl font-bold text-white">Site Visit Scheduler</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Panvel Project — June 2026</p>
+          </div>
+          <button class="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors" style="box-shadow: 0 0 16px rgba(6,182,212,0.25)">
+            <i class="fas fa-plus text-xs"></i> New Slot
+          </button>
+        </div>
+
+        <!-- Mini calendar week view -->
+        <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-4 md:p-5 mb-5">
+          <div class="flex items-center justify-between mb-4">
+            <button class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg hover:bg-slate-700 flex items-center justify-center">
+              <i class="fas fa-chevron-left text-xs"></i>
+            </button>
+            <div class="text-sm font-semibold text-white">June 23 – 29, 2026</div>
+            <button class="text-slate-400 hover:text-white transition-colors w-8 h-8 rounded-lg hover:bg-slate-700 flex items-center justify-center">
+              <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+          <div class="grid grid-cols-7 gap-1.5">
+            <!-- Days of week -->
+            <div class="text-center text-xs text-slate-500 font-semibold py-1">Mon</div>
+            <div class="text-center text-xs text-slate-500 font-semibold py-1">Tue</div>
+            <div class="text-center text-xs text-slate-500 font-semibold py-1">Wed</div>
+            <div class="text-center text-xs text-slate-500 font-semibold py-1">Thu</div>
+            <div class="text-center text-xs text-slate-500 font-semibold py-1">Fri</div>
+            <div class="text-center text-xs text-slate-500 font-semibold py-1">Sat</div>
+            <div class="text-center text-xs text-slate-500 font-semibold py-1">Sun</div>
+            
+            <!-- Date numbers -->
+            <div class="cal-day text-center py-2 rounded-lg cursor-pointer" style="background: rgba(139,92,246,0.25); border: 1px solid rgba(139,92,246,0.5)">
+              <div class="text-white font-bold text-sm">23</div>
+              <div class="flex justify-center mt-1 gap-0.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+              </div>
+            </div>
+            <div class="cal-day text-center py-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/60 cursor-pointer transition-colors">
+              <div class="text-slate-300 text-sm">24</div>
+              <div class="flex justify-center mt-1">
+                <div class="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+              </div>
+            </div>
+            <div class="cal-day text-center py-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/60 cursor-pointer transition-colors">
+              <div class="text-slate-300 text-sm">25</div>
+            </div>
+            <div class="cal-day text-center py-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/60 cursor-pointer transition-colors">
+              <div class="text-slate-300 text-sm">26</div>
+              <div class="flex justify-center mt-1 gap-0.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+              </div>
+            </div>
+            <div class="cal-day text-center py-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/60 cursor-pointer transition-colors">
+              <div class="text-slate-300 text-sm">27</div>
+              <div class="flex justify-center mt-1">
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+              </div>
+            </div>
+            <div class="cal-day text-center py-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/60 cursor-pointer transition-colors">
+              <div class="text-slate-300 text-sm">28</div>
+              <div class="flex justify-center mt-1 gap-0.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+              </div>
+            </div>
+            <div class="cal-day text-center py-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/60 cursor-pointer transition-colors">
+              <div class="text-slate-500 text-sm">29</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-4 mb-4 flex-wrap">
+          <div class="flex items-center gap-1.5 text-xs text-slate-400"><div class="w-2 h-2 rounded-full bg-violet-400"></div> Today</div>
+          <div class="flex items-center gap-1.5 text-xs text-slate-400"><div class="w-2 h-2 rounded-full bg-cyan-400"></div> Site Visit</div>
+          <div class="flex items-center gap-1.5 text-xs text-slate-400"><div class="w-2 h-2 rounded-full bg-emerald-400"></div> Confirmed</div>
+          <div class="flex items-center gap-1.5 text-xs text-slate-400"><div class="w-2 h-2 rounded-full bg-amber-400"></div> Pending</div>
+        </div>
+
+        <!-- Upcoming visits list -->
+        <h2 class="text-base font-semibold text-white mb-3">Upcoming Site Visits</h2>
+        <div class="space-y-3">
+
+          <div class="slot-card rounded-2xl p-4">
+            <div class="flex items-start gap-4 flex-wrap">
+              <div class="bg-violet-900/40 border border-violet-700/50 rounded-xl px-3 py-2 text-center min-w-16" style="box-shadow: 0 0 12px rgba(139,92,246,0.2)">
+                <div class="text-xs text-violet-400 font-medium">JUN</div>
+                <div class="text-xl font-bold text-white leading-tight">23</div>
+                <div class="text-xs text-slate-500">Today</div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-semibold text-white">Priya Sharma</h3>
+                  <span class="badge-hot text-xs px-2 py-0.5 rounded-full font-bold">Hot Lead</span>
+                </div>
+                <div class="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
+                  <i class="fas fa-location-dot text-violet-400 text-xs"></i>
+                  Godfather Heights, Panvel — Phase 2, Tower B
+                </div>
+                <div class="flex items-center gap-4 mt-2 flex-wrap">
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-home text-slate-600"></i> 2 BHK · ₹65L budget</span>
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-user text-slate-600"></i> +91 98765 43210</span>
+                </div>
+              </div>
+              <div class="text-right flex flex-col items-end gap-2">
+                <div class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                  <div class="text-sm font-bold text-white">10:00 AM</div>
+                  <div class="text-xs text-slate-500">1.5 hrs slot</div>
+                </div>
+                <div class="flex items-center gap-1 text-emerald-400 text-xs font-semibold">
+                  <i class="fas fa-circle-check text-xs"></i> Confirmed
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slot-card rounded-2xl p-4">
+            <div class="flex items-start gap-4 flex-wrap">
+              <div class="bg-cyan-900/40 border border-cyan-700/50 rounded-xl px-3 py-2 text-center min-w-16">
+                <div class="text-xs text-cyan-400 font-medium">JUN</div>
+                <div class="text-xl font-bold text-white leading-tight">24</div>
+                <div class="text-xs text-slate-500">Tomorrow</div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-semibold text-white">Amit Verma</h3>
+                  <span class="badge-warm text-xs px-2 py-0.5 rounded-full font-bold">Warm Lead</span>
+                </div>
+                <div class="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
+                  <i class="fas fa-location-dot text-cyan-400 text-xs"></i>
+                  Godfather Residency, Panvel — Phase 1, Tower A
+                </div>
+                <div class="flex items-center gap-4 mt-2 flex-wrap">
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-home text-slate-600"></i> 3 BHK · ₹95L budget</span>
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-user text-slate-600"></i> +91 87654 32109</span>
+                </div>
+              </div>
+              <div class="text-right flex flex-col items-end gap-2">
+                <div class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                  <div class="text-sm font-bold text-white">2:00 PM</div>
+                  <div class="text-xs text-slate-500">2 hrs slot</div>
+                </div>
+                <div class="flex items-center gap-1 text-amber-400 text-xs font-semibold">
+                  <i class="fas fa-clock text-xs"></i> Pending confirm
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slot-card rounded-2xl p-4">
+            <div class="flex items-start gap-4 flex-wrap">
+              <div class="bg-emerald-900/30 border border-emerald-700/50 rounded-xl px-3 py-2 text-center min-w-16">
+                <div class="text-xs text-emerald-400 font-medium">JUN</div>
+                <div class="text-xl font-bold text-white leading-tight">26</div>
+                <div class="text-xs text-slate-500">Thu</div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-semibold text-white">Neha & Rahul Joshi</h3>
+                  <span class="badge-hot text-xs px-2 py-0.5 rounded-full font-bold">Hot Lead</span>
+                </div>
+                <div class="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
+                  <i class="fas fa-location-dot text-emerald-400 text-xs"></i>
+                  Godfather Heights, Panvel — Phase 2, Tower C
+                </div>
+                <div class="flex items-center gap-4 mt-2 flex-wrap">
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-home text-slate-600"></i> 2 BHK · ₹72L budget</span>
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-user text-slate-600"></i> +91 99887 76543</span>
+                </div>
+              </div>
+              <div class="text-right flex flex-col items-end gap-2">
+                <div class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                  <div class="text-sm font-bold text-white">11:30 AM</div>
+                  <div class="text-xs text-slate-500">2 hrs slot</div>
+                </div>
+                <div class="flex items-center gap-1 text-emerald-400 text-xs font-semibold">
+                  <i class="fas fa-circle-check text-xs"></i> Confirmed
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slot-card rounded-2xl p-4">
+            <div class="flex items-start gap-4 flex-wrap">
+              <div class="bg-slate-700/40 border border-slate-600/50 rounded-xl px-3 py-2 text-center min-w-16">
+                <div class="text-xs text-slate-400 font-medium">JUN</div>
+                <div class="text-xl font-bold text-white leading-tight">26</div>
+                <div class="text-xs text-slate-500">Thu</div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-semibold text-white">Suresh Patil</h3>
+                  <span class="badge-cold text-xs px-2 py-0.5 rounded-full font-bold">Cold Lead</span>
+                </div>
+                <div class="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
+                  <i class="fas fa-location-dot text-slate-500 text-xs"></i>
+                  Godfather Residency, Panvel — Phase 1, Tower D
+                </div>
+                <div class="flex items-center gap-4 mt-2 flex-wrap">
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-home text-slate-600"></i> 1 BHK · ₹40L budget</span>
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-user text-slate-600"></i> +91 76543 21098</span>
+                </div>
+              </div>
+              <div class="text-right flex flex-col items-end gap-2">
+                <div class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                  <div class="text-sm font-bold text-white">4:00 PM</div>
+                  <div class="text-xs text-slate-500">1 hr slot</div>
+                </div>
+                <div class="flex items-center gap-1 text-blue-400 text-xs font-semibold">
+                  <i class="fas fa-envelope text-xs"></i> Email sent
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slot-card rounded-2xl p-4">
+            <div class="flex items-start gap-4 flex-wrap">
+              <div class="bg-cyan-900/30 border border-cyan-700/30 rounded-xl px-3 py-2 text-center min-w-16">
+                <div class="text-xs text-cyan-400 font-medium">JUN</div>
+                <div class="text-xl font-bold text-white leading-tight">28</div>
+                <div class="text-xs text-slate-500">Sat</div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-semibold text-white">Anjali & Vivek Desai</h3>
+                  <span class="badge-warm text-xs px-2 py-0.5 rounded-full font-bold">Warm Lead</span>
+                </div>
+                <div class="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
+                  <i class="fas fa-location-dot text-cyan-400 text-xs"></i>
+                  Godfather Heights, Panvel — Phase 3, Tower A
+                </div>
+                <div class="flex items-center gap-4 mt-2 flex-wrap">
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-home text-slate-600"></i> 3 BHK · ₹1.2Cr budget</span>
+                  <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fas fa-user text-slate-600"></i> +91 88776 65544</span>
+                </div>
+              </div>
+              <div class="text-right flex flex-col items-end gap-2">
+                <div class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                  <div class="text-sm font-bold text-white">10:00 AM</div>
+                  <div class="text-xs text-slate-500">2.5 hrs slot</div>
+                </div>
+                <div class="flex items-center gap-1 text-emerald-400 text-xs font-semibold">
+                  <i class="fas fa-circle-check text-xs"></i> Confirmed
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 3: WhatsApp Chat Logs -->
+      <!-- ============================================================ -->
+      <div id="tab-chat" class="tab-content p-4 md:p-6">
+
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h1 class="text-xl md:text-2xl font-bold text-white">WhatsApp Live Chat Logs</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Rohan AI is handling all active conversations</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-xs text-emerald-400 flex items-center gap-1.5 bg-emerald-900/20 border border-emerald-800/50 px-3 py-1.5 rounded-full">
+              <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full dot-pulse"></span>
+              5 Active
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 overflow-hidden" style="height: calc(100vh - 180px); min-height: 500px;">
+          <div class="flex h-full">
+
+            <!-- Left: Contact list -->
+            <div class="w-64 shrink-0 border-r border-slate-700/50 overflow-y-auto hidden sm:block">
+              <div class="p-3 border-b border-slate-700/50">
+                <div class="flex items-center gap-2 bg-slate-900 rounded-xl px-3 py-2">
+                  <i class="fas fa-search text-slate-500 text-xs"></i>
+                  <input type="text" placeholder="Search chats..." class="bg-transparent text-xs text-slate-300 placeholder-slate-600 outline-none flex-1" />
+                </div>
+              </div>
+
+              <div id="contactList" class="p-2 space-y-1">
+                <!-- Contacts filled by JS -->
+              </div>
+            </div>
+
+            <!-- Right: Chat area -->
+            <div class="flex-1 flex flex-col min-w-0">
+              
+              <!-- Chat header -->
+              <div class="px-4 py-3 border-b border-slate-700/50 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center font-bold text-white text-sm">R</div>
+                  <div>
+                    <div class="text-sm font-semibold text-white" id="chatContactName">Rahul Gupta</div>
+                    <div class="text-xs text-emerald-400 flex items-center gap-1">
+                      <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                      AI Active · Rohan is typing...
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Human Takeover Toggle -->
+                <div class="flex items-center gap-3">
+                  <div class="text-right">
+                    <div class="text-xs font-semibold text-white" id="toggleLabel">AI Mode</div>
+                    <div class="text-xs text-slate-500" id="toggleSub">Rohan handling</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="humanToggle" onchange="toggleHuman()" />
+                    <span class="slider"></span>
+                  </label>
+                  <div class="text-xs text-slate-400">
+                    <div class="font-medium" id="toggleIcon">🤖</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Human takeover banner -->
+              <div id="humanBanner" class="hidden px-4 py-2 bg-red-900/30 border-b border-red-800/50 text-xs text-red-400 flex items-center gap-2">
+                <i class="fas fa-triangle-exclamation"></i>
+                <span>Human takeover active — Rohan AI has paused. You are now in control of this conversation.</span>
+              </div>
+
+              <!-- Messages -->
+              <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chatMessages">
+                <!-- Filled by JS -->
+              </div>
+
+              <!-- Message input -->
+              <div class="p-4 border-t border-slate-700/50">
+                <div class="flex items-center gap-3">
+                  <button class="text-slate-500 hover:text-slate-300 transition-colors"><i class="fas fa-paperclip text-sm"></i></button>
+                  <div class="flex-1 bg-slate-900 border border-slate-700 rounded-2xl px-4 py-2.5 flex items-center gap-2">
+                    <input type="text" placeholder="Type a message..." class="bg-transparent text-sm text-slate-300 placeholder-slate-600 outline-none flex-1" id="chatInput" />
+                    <button class="text-slate-500 hover:text-slate-300 transition-colors"><i class="fas fa-face-smile text-sm"></i></button>
+                  </div>
+                  <button onclick="sendMessage()" class="w-9 h-9 rounded-full bg-emerald-500 hover:bg-emerald-400 flex items-center justify-center text-white transition-colors shadow-lg" style="box-shadow: 0 0 12px rgba(16,185,129,0.4)">
+                    <i class="fas fa-paper-plane text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 4: Bot Settings -->
+      <!-- ============================================================ -->
+      <div id="tab-settings" class="tab-content p-4 md:p-6">
+
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl md:text-2xl font-bold text-white">Bot Settings</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Configure Rohan AI's knowledge base</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-900/20 border border-emerald-800/50 px-3 py-1.5 rounded-full">
+            <i class="fas fa-circle-check text-xs"></i> All changes auto-save
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+          <!-- Left column: Form -->
+          <div class="lg:col-span-2 space-y-5">
+
+            <!-- Project Info Card -->
+            <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <i class="fas fa-building text-violet-400 text-xs"></i>
+                Project Information
+              </h2>
+              <div class="space-y-4">
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">Project Name</label>
+                  <input type="text" value="Godfather Heights — Phase 2" placeholder="e.g. Godfather Heights" class="form-input w-full rounded-xl px-4 py-3 text-sm" />
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">Starting Price</label>
+                    <div class="relative">
+                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">₹</span>
+                      <input type="text" value="55,00,000" placeholder="55,00,000" class="form-input w-full rounded-xl pl-8 pr-4 py-3 text-sm" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">Possession Date</label>
+                    <input type="text" value="December 2027" placeholder="Month Year" class="form-input w-full rounded-xl px-4 py-3 text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">Location Details</label>
+                  <textarea rows="3" class="form-input w-full rounded-xl px-4 py-3 text-sm resize-none" placeholder="Enter full location details...">Sector 12, Panvel, Navi Mumbai — Near Panvel Railway Station (5 mins), NMSEZ (2 mins), NH-48 highway access. 800 acres township.</textarea>
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">BHK Configurations Available</label>
+                  <div class="flex flex-wrap gap-2">
+                    <button class="px-4 py-2 rounded-xl text-xs font-semibold bg-violet-600 text-white border border-violet-500">1 BHK</button>
+                    <button class="px-4 py-2 rounded-xl text-xs font-semibold bg-violet-600 text-white border border-violet-500">2 BHK</button>
+                    <button class="px-4 py-2 rounded-xl text-xs font-semibold bg-violet-600 text-white border border-violet-500">3 BHK</button>
+                    <button class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-700 text-slate-400 border border-slate-600 hover:border-violet-500 hover:text-violet-400 transition-colors">4 BHK</button>
+                    <button class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-700 text-slate-400 border border-slate-600 hover:border-violet-500 hover:text-violet-400 transition-colors">Penthouse</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Personality Card -->
+            <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <i class="fas fa-robot text-violet-400 text-xs"></i>
+                Rohan AI Personality
+              </h2>
+              <div class="space-y-4">
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">AI Tone</label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button class="py-2 rounded-xl text-xs font-semibold bg-violet-600 text-white border border-violet-500">Friendly</button>
+                    <button class="py-2 rounded-xl text-xs font-semibold bg-slate-700 text-slate-400 border border-slate-600 hover:border-violet-500 transition-colors">Professional</button>
+                    <button class="py-2 rounded-xl text-xs font-semibold bg-slate-700 text-slate-400 border border-slate-600 hover:border-violet-500 transition-colors">Aggressive</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">Response Language</label>
+                  <select class="form-input w-full rounded-xl px-4 py-3 text-sm appearance-none cursor-pointer">
+                    <option value="hinglish" selected>Hinglish (Hindi + English)</option>
+                    <option value="hindi">Hindi only</option>
+                    <option value="english">English only</option>
+                    <option value="marathi">Marathi</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1.5">AI Greeting Message</label>
+                  <textarea rows="2" class="form-input w-full rounded-xl px-4 py-3 text-sm resize-none">Namaste! 🙏 Main Rohan hoon, Godfather Heights ka AI assistant. Aapka sapna ghar dhundhne mein main aapki madad karunga!</textarea>
+                </div>
+                <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
+                  <div>
+                    <div class="text-sm font-medium text-white">Auto Site Visit Scheduling</div>
+                    <div class="text-xs text-slate-500 mt-0.5">AI can book slots without broker approval</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked />
+                    <span class="slider" style="background-color: #8b5cf6; box-shadow: 0 0 10px rgba(139,92,246,0.4)"></span>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between py-2 border-t border-slate-700/50">
+                  <div>
+                    <div class="text-sm font-medium text-white">Send Brochure Automatically</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Share PDF when lead shows interest</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked />
+                    <span class="slider" style="background-color: #8b5cf6; box-shadow: 0 0 10px rgba(139,92,246,0.4)"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Save Button -->
+            <button onclick="saveSettings()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-lg" style="box-shadow: 0 4px 20px rgba(139,92,246,0.35)">
+              <i class="fas fa-save mr-2"></i>Save All Settings
+            </button>
+          </div>
+
+          <!-- Right column: Upload + Stats -->
+          <div class="space-y-5">
+
+            <!-- Upload Brochure -->
+            <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <i class="fas fa-file-pdf text-red-400 text-xs"></i>
+                Project Brochure PDF
+              </h2>
+              <div class="drop-zone rounded-2xl p-6 text-center cursor-pointer" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <input type="file" id="fileInput" accept=".pdf" class="hidden" onchange="handleFileSelect(event)" />
+                <div id="dropContent">
+                  <div class="w-14 h-14 rounded-2xl bg-slate-900/80 border border-slate-700 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-cloud-arrow-up text-violet-400 text-2xl"></i>
+                  </div>
+                  <div class="text-sm font-semibold text-white mb-1">Drop your PDF here</div>
+                  <div class="text-xs text-slate-500 mb-3">or click to browse files</div>
+                  <div class="text-xs text-slate-600">PDF files only · Max 25MB</div>
+                </div>
+                <div id="fileSuccess" class="hidden">
+                  <div class="w-14 h-14 rounded-2xl bg-emerald-900/50 border border-emerald-700/50 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-file-pdf text-emerald-400 text-2xl"></i>
+                  </div>
+                  <div class="text-sm font-semibold text-emerald-400 mb-1" id="fileName">Brochure.pdf</div>
+                  <div class="text-xs text-slate-500">Uploaded successfully</div>
+                  <button onclick="removeFile(event)" class="mt-2 text-xs text-red-400 hover:text-red-300 transition-colors">
+                    <i class="fas fa-trash text-xs mr-1"></i>Remove
+                  </button>
+                </div>
+              </div>
+
+              <!-- Existing brochure -->
+              <div class="mt-3 p-3 bg-slate-900/60 rounded-xl border border-slate-700/50 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-red-900/40 border border-red-800/50 flex items-center justify-center">
+                  <i class="fas fa-file-pdf text-red-400 text-sm"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs font-semibold text-white truncate">GodFather_Heights_Brochure_v3.pdf</div>
+                  <div class="text-xs text-slate-600">4.2 MB · Uploaded 15 Jun 2026</div>
+                </div>
+                <button class="text-slate-500 hover:text-slate-300 transition-colors">
+                  <i class="fas fa-download text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-slate-800/60 rounded-2xl border border-slate-700/50 p-5">
+              <h2 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <i class="fas fa-chart-pie text-cyan-400 text-xs"></i>
+                Rohan AI Stats Today
+              </h2>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Chats handled</span>
+                  <span class="text-sm font-bold text-white">124</span>
+                </div>
+                <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-full bg-violet-500 rounded-full" style="width:83%"></div></div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Visits booked</span>
+                  <span class="text-sm font-bold text-white">18</span>
+                </div>
+                <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-full bg-cyan-500 rounded-full" style="width:60%"></div></div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Brochures sent</span>
+                  <span class="text-sm font-bold text-white">73</span>
+                </div>
+                <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width:73%"></div></div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Human takeovers</span>
+                  <span class="text-sm font-bold text-white">6</span>
+                </div>
+                <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-full bg-red-500 rounded-full" style="width:15%"></div></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Save toast -->
+  <div id="saveToast" class="hidden fixed bottom-6 right-6 bg-emerald-900 border border-emerald-700 text-emerald-300 text-sm font-semibold px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 z-50" style="box-shadow: 0 0 20px rgba(16,185,129,0.3)">
+    <i class="fas fa-circle-check"></i> Settings saved successfully!
+  </div>
+
+<script>
+  /* ============================================================
+     DATA
+  ============================================================ */
+  const leads = [
+    { name: "Priya Sharma",   avatar: "PS", phone: "+91 98765 43210", email: "priya@gmail.com",   bhk: "2 BHK", budget: "₹65L",   tag: "Hot"  },
+    { name: "Amit Verma",     avatar: "AV", phone: "+91 87654 32109", email: "amit@outlook.com",  bhk: "3 BHK", budget: "₹95L",   tag: "Warm" },
+    { name: "Rahul Gupta",    avatar: "RG", phone: "+91 77665 54433", email: "rahul@yahoo.com",   bhk: "2 BHK", budget: "₹58L",   tag: "Hot"  },
+    { name: "Sunita Nair",    avatar: "SN", phone: "+91 66554 43322", email: "sunita@gmail.com",  bhk: "1 BHK", budget: "₹38L",   tag: "Cold" },
+    { name: "Vikram Singh",   avatar: "VS", phone: "+91 55443 32211", email: "vikram@gmail.com",  bhk: "3 BHK", budget: "₹1.1Cr", tag: "Warm" },
+    { name: "Neha Joshi",     avatar: "NJ", phone: "+91 44332 21100", email: "neha@gmail.com",    bhk: "2 BHK", budget: "₹72L",   tag: "Hot"  },
+    { name: "Suresh Patil",   avatar: "SP", phone: "+91 76543 21098", email: "suresh@gmail.com",  bhk: "1 BHK", budget: "₹40L",   tag: "Cold" },
+    { name: "Anjali Desai",   avatar: "AD", phone: "+91 88776 65544", email: "anjali@gmail.com",  bhk: "3 BHK", budget: "₹1.2Cr", tag: "Warm" },
+    { name: "Kiran Mehta",    avatar: "KM", phone: "+91 99887 76655", email: "kiran@hotmail.com", bhk: "2 BHK", budget: "₹75L",   tag: "Hot"  },
+    { name: "Deepak Rao",     avatar: "DR", phone: "+91 91234 56789", email: "deepak@gmail.com",  bhk: "2 BHK", budget: "₹62L",   tag: "Cold" },
+  ];
+
+  const contacts = [
+    { name: "Rahul Gupta",    phone: "+91 77665 54433", tag: "Hot",  unread: 3, time: "Just now",  active: true  },
+    { name: "Priya Sharma",   phone: "+91 98765 43210", tag: "Hot",  unread: 0, time: "2 min ago", active: true  },
+    { name: "Amit Verma",     phone: "+91 87654 32109", tag: "Warm", unread: 1, time: "5 min ago", active: true  },
+    { name: "Sunita Nair",    phone: "+91 66554 43322", tag: "Cold", unread: 0, time: "12 min ago", active: false },
+    { name: "Vikram Singh",   phone: "+91 55443 32211", tag: "Warm", unread: 2, time: "18 min ago", active: true  },
+  ];
+
+  const conversation = [
+    { sender: "ai",   name: "Rohan AI", text: "Namaste Rahul ji! 🙏 Main Rohan hoon, Godfather Heights ka assistant. Aap 2 BHK mein interested hain na Panvel mein?", time: "10:02 AM" },
+    { sender: "user", name: "Rahul",    text: "Haan bhai, budget around 60 lakh hai. Kya milega?", time: "10:03 AM" },
+    { sender: "ai",   name: "Rohan AI", text: "Bahut achha! Humara 2 BHK ₹55L se start hota hai. 650 sq ft carpet area, East-facing, modular kitchen ke saath. Floor 8 pe bhi available hai — amazing view milta hai! 😊", time: "10:04 AM" },
+    { sender: "user", name: "Rahul",    text: "Site visit possible hai kya is weekend?", time: "10:05 AM" },
+    { sender: "ai",   name: "Rohan AI", text: "Bilkul! Main aapke liye Saturday 10 AM slot book karta hoon — Godfather Heights, Sector 12, Panvel. Confirm karo? Ek brochure bhi bhej raha hoon PDF mein! 📋", time: "10:05 AM" },
+    { sender: "user", name: "Rahul",    text: "Perfect! Saturday 10 AM confirm.", time: "10:06 AM" },
+    { sender: "ai",   name: "Rohan AI", text: "Done! ✅ Site visit confirmed — Saturday, 28 June, 10:00 AM. Location pin WhatsApp pe share kar diya. Rajesh bhai personally aapka swagat karenge! 🤝", time: "10:06 AM" },
+  ];
+
+  /* ============================================================
+     RENDER LEADS TABLE
+  ============================================================ */
+  function renderLeads(data) {
+    const tbody = document.getElementById('leadsTableBody');
+    const tagColors = {
+      Hot: '<span class="badge-hot text-xs px-2.5 py-0.5 rounded-full font-bold">🔥 Hot</span>',
+      Warm: '<span class="badge-warm text-xs px-2.5 py-0.5 rounded-full font-bold">⚡ Warm</span>',
+      Cold: '<span class="badge-cold text-xs px-2.5 py-0.5 rounded-full font-bold">❄️ Cold</span>',
+    };
+    const avatarColors = { H: 'from-red-600 to-rose-700', W: 'from-amber-600 to-orange-700', C: 'from-blue-600 to-sky-700' };
+    tbody.innerHTML = data.map(l => `
+      <tr class="table-row border-b border-slate-700/30 transition-colors">
+        <td class="px-5 py-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br ${avatarColors[l.tag[0]]} flex items-center justify-center text-white text-xs font-bold shrink-0">${l.avatar}</div>
+            <span class="font-medium text-white text-sm">${l.name}</span>
+          </div>
+        </td>
+        <td class="px-4 py-3.5 text-slate-400 text-sm">${l.phone}</td>
+        <td class="px-4 py-3.5 text-slate-500 text-sm hidden md:table-cell">${l.email}</td>
+        <td class="px-4 py-3.5 text-slate-300 text-sm font-medium">${l.bhk}</td>
+        <td class="px-4 py-3.5 text-slate-300 text-sm font-medium hidden sm:table-cell">${l.budget}</td>
+        <td class="px-4 py-3.5">${tagColors[l.tag]}</td>
+      </tr>
+    `).join('');
+    document.getElementById('leadCount').textContent = data.length;
+  }
+
+  function filterLeads() {
+    const q = document.getElementById('leadSearch').value.toLowerCase();
+    const filtered = leads.filter(l =>
+      l.name.toLowerCase().includes(q) ||
+      l.phone.includes(q) ||
+      l.email.toLowerCase().includes(q) ||
+      l.tag.toLowerCase().includes(q)
+    );
+    renderLeads(filtered);
+  }
+
+  /* ============================================================
+     RENDER CONTACTS
+  ============================================================ */
+  function renderContacts() {
+    const tagDot = { Hot: 'bg-red-400', Warm: 'bg-amber-400', Cold: 'bg-blue-400' };
+    const tagColor = { Hot: 'text-red-400', Warm: 'text-amber-400', Cold: 'text-blue-400' };
+    document.getElementById('contactList').innerHTML = contacts.map((c, i) => `
+      <div class="contact-item ${i === 0 ? 'active' : ''} rounded-xl p-3 border border-transparent" onclick="selectContact(${i})">
+        <div class="flex items-start gap-2.5">
+          <div class="relative shrink-0">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-xs font-bold">${c.name.split(' ').map(n=>n[0]).join('')}</div>
+            ${c.active ? '<div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-800 dot-pulse"></div>' : ''}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-semibold text-white truncate">${c.name}</span>
+              <span class="text-xs text-slate-600 shrink-0 ml-1">${c.time}</span>
+            </div>
+            <div class="flex items-center justify-between mt-0.5">
+              <span class="text-xs text-slate-500 truncate">${c.phone}</span>
+              ${c.unread > 0 ? `<span class="bg-emerald-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold shrink-0 ml-1">${c.unread}</span>` : ''}
+            </div>
+            <div class="flex items-center gap-1 mt-1">
+              <div class="w-1.5 h-1.5 rounded-full ${tagDot[c.tag]}"></div>
+              <span class="text-xs ${tagColor[c.tag]} font-medium">${c.tag}</span>
+              ${c.active ? '<span class="text-xs text-emerald-400 ml-1">· AI Active</span>' : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function selectContact(i) {
+    document.querySelectorAll('.contact-item').forEach((el, idx) => {
+      el.classList.toggle('active', idx === i);
+    });
+    document.getElementById('chatContactName').textContent = contacts[i].name;
+  }
+
+  /* ============================================================
+     RENDER MESSAGES
+  ============================================================ */
+  function renderMessages(msgs) {
+    const el = document.getElementById('chatMessages');
+    el.innerHTML = msgs.map(m => {
+      const isAI = m.sender === 'ai';
+      return `
+        <div class="flex ${isAI ? 'justify-start' : 'justify-end'} items-end gap-2">
+          ${isAI ? '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center text-white text-xs font-bold shrink-0 mb-1">R</div>' : ''}
+          <div class="max-w-xs md:max-w-sm">
+            <div class="text-xs text-slate-600 mb-1 ${isAI ? '' : 'text-right'}">${m.name} · ${m.time}</div>
+            <div class="${isAI ? 'chat-bubble-ai' : 'chat-bubble-user'} px-4 py-2.5 text-sm text-slate-200 leading-relaxed">${m.text}</div>
+          </div>
+          ${!isAI ? '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-xs font-bold shrink-0 mb-1">RG</div>' : ''}
+        </div>
+      `;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    conversation.push({ sender: 'user', name: 'You', text, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) });
+    renderMessages(conversation);
+    input.value = '';
+    setTimeout(() => {
+      conversation.push({ sender: 'ai', name: 'Rohan AI', text: 'Samajh gaya! Main abhi broker Rajesh bhai ko bata raha hoon. Kuch minute mein update milega. 🙏', time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) });
+      renderMessages(conversation);
+    }, 1200);
+  }
+
+  document.getElementById('chatInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  /* ============================================================
+     TAB SWITCHING
+  ============================================================ */
+  function switchTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    // Deactivate all nav items
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    // Show selected tab
+    document.getElementById('tab-' + tab).classList.add('active');
+    // Activate clicked nav item (find by onclick attr)
+    document.querySelectorAll('.nav-item').forEach(el => {
+      if (el.getAttribute('onclick') === `switchTab('${tab}')`) {
+        el.classList.add('active');
+      }
+    });
+    // Close sidebar on mobile
+    if (window.innerWidth < 768) toggleSidebar(false);
+  }
+
+  /* ============================================================
+     SIDEBAR (MOBILE)
+  ============================================================ */
+  function toggleSidebar(force) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const isOpen = sidebar.classList.contains('open');
+    const open = force !== undefined ? force : !isOpen;
+    sidebar.classList.toggle('open', open);
+    overlay.classList.toggle('show', open);
+  }
+
+  /* ============================================================
+     HUMAN TAKEOVER TOGGLE
+  ============================================================ */
+  function toggleHuman() {
+    const checked = document.getElementById('humanToggle').checked;
+    const banner = document.getElementById('humanBanner');
+    const label = document.getElementById('toggleLabel');
+    const sub = document.getElementById('toggleSub');
+    const icon = document.getElementById('toggleIcon');
+    banner.classList.toggle('hidden', !checked);
+    if (checked) {
+      label.textContent = 'Human Mode';
+      sub.textContent = 'You are in control';
+      icon.textContent = '👤';
+    } else {
+      label.textContent = 'AI Mode';
+      sub.textContent = 'Rohan handling';
+      icon.textContent = '🤖';
+    }
+  }
+
+  /* ============================================================
+     FILE UPLOAD (DRAG & DROP)
+  ============================================================ */
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.add('dragover');
+  }
+  function handleDragLeave() {
+    document.getElementById('dropZone').classList.remove('dragover');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') showFile(file.name);
+    else alert('Please drop a PDF file.');
+  }
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) showFile(file.name);
+  }
+  function showFile(name) {
+    document.getElementById('dropContent').classList.add('hidden');
+    document.getElementById('fileSuccess').classList.remove('hidden');
+    document.getElementById('fileName').textContent = name;
+  }
+  function removeFile(e) {
+    e.stopPropagation();
+    document.getElementById('dropContent').classList.remove('hidden');
+    document.getElementById('fileSuccess').classList.add('hidden');
+    document.getElementById('fileInput').value = '';
+  }
+
+  /* ============================================================
+     SAVE SETTINGS TOAST
+  ============================================================ */
+  function saveSettings() {
+    const toast = document.getElementById('saveToast');
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+  }
+
+  /* ============================================================
+     INIT
+  ============================================================ */
+  renderLeads(leads);
+  renderContacts();
+  renderMessages(conversation);
+</script>
+</body>
+</html>
