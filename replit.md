@@ -1,44 +1,62 @@
-# [Project name]
+# Digital Godfather
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+AI-powered real estate automation SaaS dashboard for brokers to manage leads, site visits, and WhatsApp conversations via the Rohan AI bot.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/digital-godfather run dev` — run the frontend (port 24857)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Frontend: React 19 + Vite + Tailwind CSS 4 (artifact: `digital-godfather`)
+- API: Express 5 (artifact: `api-server`)
+- Icons: FontAwesome 6 (CDN in index.html)
+- Fonts: Inter (Google Fonts CDN)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/digital-godfather/src/lib/api.ts` — all n8n webhook URLs and fetch functions (source of truth for API layer)
+- `artifacts/digital-godfather/src/hooks/` — `useLeads.ts`, `useAppointments.ts`, `useSettings.ts` (data hooks with fallback)
+- `artifacts/digital-godfather/src/components/` — `Sidebar`, `Analytics`, `Scheduler`, `ChatLogs`, `BotSettings`
+- `artifacts/digital-godfather/src/pages/Dashboard.tsx` — main page, tab switching
+- `artifacts/digital-godfather/src/App.tsx` — Wouter router
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- n8n webhooks are called directly from the browser (no proxy). If a webhook is down, the hook gracefully falls back to demo data and shows an amber warning banner.
+- All tab state lives in `Dashboard.tsx` via `useState<TabId>` — no router-based tabs, intentional for simplicity.
+- Settings are POSTed to n8n as JSON on form submit; the form is local state until save is clicked.
+- FontAwesome is loaded via CDN in `index.html` so it's available across all components with `<i className="fas ...">`.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Analytics & Leads**: Live lead table pulled from n8n with Hot/Warm/Cold AI tags, search, and metric cards.
+- **Site Visit Scheduler**: Calendar view + upcoming visit cards pulled from n8n appointments webhook.
+- **WhatsApp Chat Logs**: Split-screen chat UI with Hinglish AI conversation, AI typing indicator, and Human Takeover toggle.
+- **Bot Settings**: Form to update Rohan AI's project knowledge, POSTed to n8n on save.
+
+## n8n Webhooks
+
+| Purpose           | URL                                                                 | Method |
+|-------------------|----------------------------------------------------------------------|--------|
+| Get Leads         | https://n8n-production-8556.up.railway.app/webhook/get-leads        | GET    |
+| Get Appointments  | https://n8n-production-8556.up.railway.app/webhook/get-appointments | GET    |
+| Update Settings   | https://n8n-production-8556.up.railway.app/webhook/update-settings  | POST   |
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Dark-first, slate-900 background, violet/cyan/emerald accent system.
+- Hinglish tone for the Rohan AI bot.
+- Panvel, Navi Mumbai project location.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- FontAwesome classes (`fas`, `fab`) require the CDN link in `index.html` — do NOT remove it.
+- The `@tailwindcss/typography` plugin was removed from `index.css` (was causing build warnings on unused plugin); do not re-add unless needed.
+- n8n webhooks may return CORS errors in development — the hooks handle this silently with fallback data.
 
 ## Pointers
 
