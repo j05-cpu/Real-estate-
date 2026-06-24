@@ -68,17 +68,63 @@ function normalizeStatus(raw: string): "Confirmed" | "Pending" | "Email Sent" {
   return "Pending";
 }
 
+/** Derive tag from the three boolean columns used in n8n Google Sheet. */
+function deriveTagFromColumns(r: Record<string, unknown>): "Hot" | "Warm" | "Cold" {
+  const isYes = (v: unknown) => String(v ?? "").toLowerCase() === "yes";
+  // Check exact field names first, then generic tag field
+  if (isYes(r["Hot/ReadyToBook"]))  return "Hot";
+  if (isYes(r["Warm/Future"]))      return "Warm";
+  if (isYes(r["Cold/Timepass"]))    return "Cold";
+  // Fallback to generic tag field
+  const tagRaw = pick(r, "tag", "Tag", "status", "Status", "lead_status", "leadStatus", "category", "Category", "ai_tag", "aiTag", "label", "Label");
+  return normalizeTag(tagRaw);
+}
+
+/** Format phone number — handles numeric values like 919987353370 */
+function formatPhone(raw: string): string {
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  // Indian numbers starting with 91 and 12 digits total → +91 XXXXX XXXXX
+  if (digits.length === 12 && digits.startsWith("91")) {
+    const local = digits.slice(2);
+    return `+91 ${local.slice(0, 5)} ${local.slice(5)}`;
+  }
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  return raw;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeLead(raw: any, index: number): Lead {
   const r = raw as Record<string, unknown>;
   return {
-    id:     raw.id ?? index,
-    name:   pick(r, "name", "Name", "lead_name", "leadName", "buyer_name", "buyerName", "fullName", "full_name", "contact_name", "contactName") || `Lead ${index + 1}`,
-    phone:  pick(r, "phone", "Phone", "phone_number", "phoneNumber", "mobile", "Mobile", "contact", "Contact", "whatsapp", "WhatsApp"),
-    email:  pick(r, "email", "Email", "email_address", "emailAddress"),
-    bhk:    pick(r, "bhk", "BHK", "bhk_type", "bhkType", "unit_type", "unitType", "configuration"),
-    budget: pick(r, "budget", "Budget", "price", "Price", "budget_range", "budgetRange"),
-    tag:    normalizeTag(pick(r, "tag", "Tag", "status", "Status", "lead_status", "leadStatus", "category", "Category", "ai_tag", "aiTag", "label", "Label")),
+    id:     raw.row_number ?? raw.id ?? index,
+    name:   pick(r,
+      "Customer Name", "customer_name",
+      "name", "Name", "lead_name", "leadName",
+      "buyer_name", "buyerName", "fullName", "full_name",
+      "contact_name", "contactName"
+    ) || `Lead ${index + 1}`,
+    phone:  formatPhone(pick(r,
+      "Phone Number", "phone_number", "phoneNumber",
+      "phone", "Phone", "mobile", "Mobile",
+      "contact", "Contact", "whatsapp", "WhatsApp"
+    )),
+    email:  pick(r,
+      "Gmail ", "Gmail", "gmail",           // n8n has trailing space
+      "email", "Email", "email_address", "emailAddress"
+    ),
+    bhk:    pick(r,
+      "BHK Preference", "bhk_preference",
+      "bhk", "BHK", "bhk_type", "bhkType",
+      "unit_type", "unitType", "configuration"
+    ),
+    budget: pick(r,
+      "Budget Range", "budget_range", "budgetRange",
+      "budget", "Budget", "price", "Price"
+    ),
+    tag:    deriveTagFromColumns(r),
   };
 }
 
@@ -126,7 +172,9 @@ export async function fetchLeads(): Promise<Lead[]> {
     : Array.isArray(data?.data)    ? data.data
     : Array.isArray(data?.records) ? data.records
     : [];
-  return arr.map((r, i) => normalizeLead(r, i));
+  return arr
+    .map((r, i) => normalizeLead(r, i))
+    .filter(l => l.name && !l.name.startsWith("Lead ")); // drop empty/junk rows
 }
 
 export async function fetchAppointments(): Promise<Appointment[]> {
