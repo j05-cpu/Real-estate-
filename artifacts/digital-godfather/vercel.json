@@ -1,0 +1,9 @@
+{
+  "framework": null,
+  "installCommand": "cd ../.. && npm install -g pnpm && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter @workspace/digital-godfather run build",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

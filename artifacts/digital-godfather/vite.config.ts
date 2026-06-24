@@ -2,49 +2,41 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT;
+const isProduction = process.env.NODE_ENV === "production";
+const isReplit    = process.env.REPL_ID !== undefined;
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
+// PORT and BASE_PATH are Replit-injected at runtime.
+// For Vercel / CI builds they are not set — use safe defaults.
+const rawPort  = process.env.PORT;
+const port     = rawPort && !Number.isNaN(Number(rawPort)) ? Number(rawPort) : 3000;
+const basePath = process.env.BASE_PATH ?? "/";
+
+// Replit-only dev plugins — loaded lazily so they don't break Vercel
+async function replitPlugins() {
+  if (isProduction || !isReplit) return [];
+  try {
+    const [{ cartographer }, { devBanner }, { default: runtimeErrorOverlay }] = await Promise.all([
+      import("@replit/vite-plugin-cartographer"),
+      import("@replit/vite-plugin-dev-banner"),
+      import("@replit/vite-plugin-runtime-error-modal"),
+    ]);
+    return [
+      cartographer({ root: path.resolve(import.meta.dirname, "..") }),
+      devBanner(),
+      runtimeErrorOverlay(),
+    ];
+  } catch {
+    return [];
+  }
 }
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
-}
-
-export default defineConfig({
+export default defineConfig(async () => ({
   base: basePath,
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer({
-              root: path.resolve(import.meta.dirname, ".."),
-            }),
-          ),
-          await import("@replit/vite-plugin-dev-banner").then((m) =>
-            m.devBanner(),
-          ),
-        ]
-      : []),
+    ...(await replitPlugins()),
   ],
   resolve: {
     alias: {
@@ -72,4 +64,4 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: true,
   },
-});
+}));
