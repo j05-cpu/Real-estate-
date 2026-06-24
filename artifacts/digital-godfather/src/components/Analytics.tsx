@@ -163,8 +163,8 @@ export default function Analytics({ leadsState }: Props) {
                     <tr key={l.id ?? i} className="border-b border-slate-700/30 hover:bg-violet-600/5 transition-colors">
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${AVATAR_GRADIENT[l.tag]} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-                            {l.name.split(" ").slice(0,2).map(n=>n[0]).join("")}
+                          <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${AVATAR_GRADIENT[l.tag] ?? AVATAR_GRADIENT.Cold} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
+                            {(l.name || "?").split(" ").slice(0,2).map((n: string) => n[0]).join("")}
                           </div>
                           <span className="font-medium text-white">{l.name}</span>
                         </div>
