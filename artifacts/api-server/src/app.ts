@@ -1,8 +1,17 @@
 import express, { type Express, Request, Response } from "express";
 import cors from "cors";
-import pinoHttp from "pino-http";
+import * as _pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+
+// pino-http v10 ships an `export =` CJS module; under ESM + "moduleResolution: bundler"
+// the namespace import gives us the callable as `.default` or as the namespace itself.
+// This cast is the safe way to call it without Vercel's stricter tsc failing.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pinoHttp: (opts: any) => any =
+  (typeof (_pinoHttp as any).default === "function")
+    ? (_pinoHttp as any).default
+    : (_pinoHttp as any);
 
 const app: Express = express();
 

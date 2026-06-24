@@ -1,0 +1,5 @@
+{
+  "framework": null,
+  "buildCommand": "node ./build.mjs",
+  "installCommand": "cd ../.. && npm install -g pnpm && pnpm install --frozen-lockfile"
+}
