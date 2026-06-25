@@ -2,13 +2,15 @@
 import React, { useState } from "react";
 import type { LeadsState } from "@/hooks/useLeads";
 import type { Lead } from "@/lib/api";
+import { useLeadsStats } from "@/hooks/useLeadsStats";
 
 interface Props { leadsState: LeadsState; }
 
+/* ─── Tag styles ─────────────────────────────────────────────────── */
 const TAG_BADGE: Record<string, React.ReactNode> = {
-  Hot:  <span style={{ background:"rgba(239,68,68,.15)", border:"1px solid rgba(239,68,68,.5)", color:"#ef4444", boxShadow:"0 0 10px rgba(239,68,68,.35)" }} className="text-xs px-2.5 py-0.5 rounded-full font-bold inline-block animate-pulse">🔥 Hot</span>,
-  Warm: <span style={{ background:"rgba(245,158,11,.15)", border:"1px solid rgba(245,158,11,.5)", color:"#f59e0b", boxShadow:"0 0 8px rgba(245,158,11,.3)" }} className="text-xs px-2.5 py-0.5 rounded-full font-bold inline-block">⚡ Warm</span>,
-  Cold: <span style={{ background:"rgba(59,130,246,.15)", border:"1px solid rgba(59,130,246,.5)", color:"#3b82f6", boxShadow:"0 0 8px rgba(59,130,246,.2)" }} className="text-xs px-2.5 py-0.5 rounded-full font-bold inline-block">❄️ Cold</span>,
+  Hot:  <span style={{ background:"rgba(239,68,68,.15)", border:"1px solid rgba(239,68,68,.5)", color:"#ef4444", boxShadow:"0 0 8px rgba(239,68,68,.3)" }} className="text-xs px-2 py-0.5 rounded-full font-bold">🔥 Hot</span>,
+  Warm: <span style={{ background:"rgba(245,158,11,.15)", border:"1px solid rgba(245,158,11,.5)", color:"#f59e0b", boxShadow:"0 0 6px rgba(245,158,11,.25)" }} className="text-xs px-2 py-0.5 rounded-full font-bold">⚡ Warm</span>,
+  Cold: <span style={{ background:"rgba(59,130,246,.15)", border:"1px solid rgba(59,130,246,.5)", color:"#3b82f6", boxShadow:"0 0 6px rgba(59,130,246,.2)" }} className="text-xs px-2 py-0.5 rounded-full font-bold">❄️ Cold</span>,
 };
 
 const AVATAR_GRADIENT: Record<string, string> = {
@@ -17,29 +19,151 @@ const AVATAR_GRADIENT: Record<string, string> = {
   Cold: "from-blue-600 to-sky-700",
 };
 
-function MetricCard({ icon, iconBg, iconGlow, title, value, change, bar, barColor, sub }: {
-  icon: string; iconBg: string; iconGlow: string; title: string; value: string;
-  change: string; bar: number; barColor: string; sub: string;
-}) {
+/* ─── Metric card definitions ────────────────────────────────────── */
+interface CardDef {
+  key:    "total" | "hot" | "warm" | "cold";
+  label:  string;
+  icon:   string;
+  color:  string;        // hex accent
+  glow:   string;        // rgba glow
+  border: string;        // border colour
+  bg:     string;        // card bg gradient
+  ring:   string;        // icon ring bg
+}
+
+const CARDS: CardDef[] = [
+  {
+    key: "total", label: "Total Leads",   icon: "fas fa-users",
+    color: "#a78bfa", glow: "rgba(167,139,250,.18)", border: "rgba(139,92,246,.35)",
+    bg:   "linear-gradient(135deg,rgba(30,27,75,.7),rgba(20,18,50,.8))",
+    ring: "rgba(139,92,246,.2)",
+  },
+  {
+    key: "hot",   label: "Hot Leads",     icon: "fas fa-fire",
+    color: "#f87171", glow: "rgba(248,113,113,.18)", border: "rgba(239,68,68,.35)",
+    bg:   "linear-gradient(135deg,rgba(75,20,20,.7),rgba(50,15,15,.8))",
+    ring: "rgba(239,68,68,.2)",
+  },
+  {
+    key: "warm",  label: "Warm Leads",    icon: "fas fa-bolt",
+    color: "#fbbf24", glow: "rgba(251,191,36,.18)",  border: "rgba(245,158,11,.35)",
+    bg:   "linear-gradient(135deg,rgba(75,55,10,.7),rgba(50,35,5,.8))",
+    ring: "rgba(245,158,11,.2)",
+  },
+  {
+    key: "cold",  label: "Cold Leads",    icon: "fas fa-snowflake",
+    color: "#60a5fa", glow: "rgba(96,165,250,.18)",  border: "rgba(59,130,246,.35)",
+    bg:   "linear-gradient(135deg,rgba(15,30,75,.7),rgba(10,20,50,.8))",
+    ring: "rgba(59,130,246,.2)",
+  },
+];
+
+/* ─── Skeleton card ──────────────────────────────────────────────── */
+function SkeletonCard() {
   return (
-    <div className="bg-slate-800/60 rounded-2xl p-5 backdrop-blur-sm" style={{ border:`1px solid ${iconGlow}44`, boxShadow:`0 0 20px ${iconGlow}26, inset 0 0 20px ${iconGlow}0d` }}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background:iconBg, boxShadow:`0 0 14px ${iconGlow}4d` }}>
-          <i className={`${icon} text-lg`} style={{ color:iconGlow }} />
-        </div>
-        <span className="text-xs text-emerald-400 bg-emerald-900/30 border border-emerald-800/50 px-2 py-0.5 rounded-full font-medium">{change}</span>
-      </div>
-      <div className="text-3xl font-bold text-white mb-1">{value}</div>
-      <div className="text-sm text-slate-400 font-medium">{title}</div>
-      <div className="mt-3 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-700" style={{ width:`${bar}%`, background:barColor }} />
-      </div>
-      <div className="text-xs text-slate-600 mt-1">{sub}</div>
+    <div className="rounded-2xl p-4 animate-pulse" style={{ background:"rgba(30,41,59,.6)", border:"1px solid rgba(71,85,105,.3)" }}>
+      <div className="w-8 h-8 rounded-lg bg-slate-700/60 mb-3" />
+      <div className="h-7 w-14 bg-slate-700/60 rounded mb-2" />
+      <div className="h-3 w-20 bg-slate-700/40 rounded" />
     </div>
   );
 }
 
-function SkeletonRow() {
+/* ─── 2×2 Metric grid card ───────────────────────────────────────── */
+function MetricCard({ def, value, total, loading }: { def: CardDef; value: number; total: number; loading: boolean }) {
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+
+  if (loading) return <SkeletonCard />;
+
+  return (
+    <div
+      className="rounded-2xl p-4 flex flex-col gap-1.5 transition-transform duration-200 active:scale-95"
+      style={{
+        background: def.bg,
+        border: `1px solid ${def.border}`,
+        boxShadow: `0 0 20px ${def.glow}, inset 0 0 16px ${def.glow}`,
+      }}
+    >
+      {/* Icon */}
+      <div
+        className="w-8 h-8 rounded-lg flex items-center justify-center mb-1"
+        style={{ background: def.ring, boxShadow: `0 0 10px ${def.glow}` }}
+      >
+        <i className={`${def.icon} text-sm`} style={{ color: def.color }} />
+      </div>
+
+      {/* Count */}
+      <div className="text-2xl sm:text-3xl font-extrabold text-white leading-none tracking-tight">
+        {value}
+      </div>
+
+      {/* Label */}
+      <div className="text-xs font-semibold" style={{ color: def.color, opacity: .85 }}>
+        {def.label}
+      </div>
+
+      {/* % pill */}
+      {def.key !== "total" && (
+        <div
+          className="text-xs font-bold px-2 py-0.5 rounded-full self-start mt-0.5"
+          style={{ background: def.ring, color: def.color }}
+        >
+          {pct}% of total
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Mobile lead card (replaces table rows on small screens) ─────── */
+function LeadCard({ lead }: { lead: Lead }) {
+  const gradient = AVATAR_GRADIENT[lead.tag] ?? "from-slate-600 to-slate-700";
+  return (
+    <div
+      className="rounded-xl p-3.5 flex items-start gap-3"
+      style={{ background:"rgba(30,41,59,.5)", border:"1px solid rgba(71,85,105,.3)" }}
+    >
+      <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5`}>
+        {(lead.name || "?").split(" ").slice(0,2).map((n:string) => n[0]).join("")}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-0.5">
+          <span className="font-semibold text-white text-sm truncate">{lead.name}</span>
+          {TAG_BADGE[lead.tag]}
+        </div>
+        {lead.phone && <div className="text-xs text-slate-400">{lead.phone}</div>}
+        <div className="flex items-center gap-3 mt-1 flex-wrap">
+          {lead.bhk   && <span className="text-xs text-slate-500">{lead.bhk}</span>}
+          {lead.budget && <span className="text-xs text-slate-500 font-medium">{lead.budget}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Desktop table row ─────────────────────────────────────────────── */
+function TableRow({ lead, i }: { lead: Lead; i: number }) {
+  const gradient = AVATAR_GRADIENT[lead.tag] ?? "from-slate-600 to-slate-700";
+  return (
+    <tr className="border-b border-slate-700/30 hover:bg-violet-600/5 transition-colors">
+      <td className="px-4 py-3.5">
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
+            {(lead.name || "?").split(" ").slice(0,2).map((n:string) => n[0]).join("")}
+          </div>
+          <span className="font-medium text-white text-sm">{lead.name}</span>
+        </div>
+      </td>
+      <td className="px-4 py-3.5 text-slate-400 text-sm">{lead.phone}</td>
+      <td className="px-4 py-3.5 text-slate-500 text-sm hidden lg:table-cell">{lead.email}</td>
+      <td className="px-4 py-3.5 text-slate-300 text-sm font-medium hidden md:table-cell">{lead.bhk}</td>
+      <td className="px-4 py-3.5 text-slate-300 text-sm font-medium">{lead.budget}</td>
+      <td className="px-4 py-3.5">{TAG_BADGE[lead.tag]}</td>
+    </tr>
+  );
+}
+
+function SkeletonTableRow() {
   return (
     <tr className="border-b border-slate-700/30">
       {[1,2,3,4,5,6].map(i => (
@@ -56,139 +180,152 @@ function formatTime(d: Date | null) {
   return d.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit", second:"2-digit" });
 }
 
+/* ─── Main component ─────────────────────────────────────────────── */
 export default function Analytics({ leadsState }: Props) {
   const { leads, loading, syncing, error, usingFallback, lastSynced, newCount, reload } = leadsState;
+  const stats = useLeadsStats(leadsState);
   const [search, setSearch] = useState("");
 
   const filtered = leads.filter(l =>
     !search ||
     l.name.toLowerCase().includes(search.toLowerCase()) ||
     l.phone.includes(search) ||
-    l.email.toLowerCase().includes(search.toLowerCase()) ||
+    (l.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
     l.tag.toLowerCase().includes(search.toLowerCase())
   );
 
-  const hotCount  = leads.filter(l => l.tag === "Hot").length;
-  const warmCount = leads.filter(l => l.tag === "Warm").length;
-  const coldCount = leads.length - hotCount - warmCount;
-
   return (
-    <div className="p-4 md:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto">
+
+      {/* ── Header ────────────────────────────────────────────── */}
+      <div className="flex items-start justify-between mb-4 gap-3">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white">Analytics &amp; Leads</h1>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <p className="text-sm text-slate-500">Monday, 23 June 2026 · Panvel</p>
-            {/* Live / demo status pill */}
+          <h1 className="text-lg md:text-2xl font-bold text-white leading-tight">Analytics &amp; Leads</h1>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             {usingFallback
               ? <span className="text-xs text-amber-400 bg-amber-900/20 border border-amber-800/40 px-2 py-0.5 rounded-full font-medium">Demo data</span>
               : <span className="text-xs text-emerald-400 bg-emerald-900/20 border border-emerald-800/40 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live · {formatTime(lastSynced)}
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                  Live · {formatTime(lastSynced)}
                 </span>
             }
             {syncing && <span className="text-xs text-violet-400 animate-pulse">Syncing…</span>}
+            {stats.source === "supabase" && (
+              <span className="text-xs text-cyan-400 bg-cyan-900/20 border border-cyan-800/40 px-2 py-0.5 rounded-full font-medium">Supabase DB</span>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => reload()} disabled={loading || syncing} className="hidden md:flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-sm px-3 py-2 rounded-xl transition-colors disabled:opacity-50">
-            <i className={`fas fa-rotate-right text-xs ${(loading || syncing) ? "animate-spin" : ""}`} /> Refresh
-          </button>
-          <button className="hidden md:flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors" style={{ boxShadow:"0 0 16px rgba(139,92,246,.3)" }}>
-            <i className="fas fa-download text-xs" /> Export
-          </button>
-        </div>
+        <button
+          onClick={() => reload()}
+          disabled={loading || syncing}
+          className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors disabled:opacity-40"
+        >
+          <i className={`fas fa-rotate-right text-sm ${(loading || syncing) ? "animate-spin" : ""}`} />
+        </button>
       </div>
 
-      {/* New leads notification */}
+      {/* ── New leads banner ──────────────────────────────────── */}
       {newCount > 0 && (
-        <div className="mb-4 flex items-center gap-3 bg-violet-900/20 border border-violet-700/50 px-4 py-3 rounded-xl" style={{ boxShadow:"0 0 16px rgba(139,92,246,.15)" }}>
-          <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
-          <span className="text-sm text-violet-300 font-semibold">🎉 {newCount} new lead{newCount>1?"s":""} just arrived from n8n!</span>
+        <div className="mb-4 flex items-center gap-3 bg-violet-900/20 border border-violet-700/50 px-4 py-2.5 rounded-xl">
+          <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse shrink-0" />
+          <span className="text-sm text-violet-300 font-semibold">🎉 {newCount} new lead{newCount > 1 ? "s" : ""} from n8n!</span>
         </div>
       )}
 
-      {/* Error banner */}
+      {/* ── Error banner ──────────────────────────────────────── */}
       {error && (
         <div className="mb-4 flex items-center gap-2 bg-amber-900/20 border border-amber-800/50 text-amber-400 text-xs px-4 py-2.5 rounded-xl">
-          <i className="fas fa-triangle-exclamation" /> {error}
+          <i className="fas fa-triangle-exclamation shrink-0" /> {error}
         </div>
       )}
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-        <MetricCard icon="fas fa-robot"        iconBg="rgba(139,92,246,.2)"  iconGlow="#8b5cf6" title="Total AI Chats"        value="3,847"              change="+18% ↑" bar={76} barColor="linear-gradient(90deg,#7c3aed,#a78bfa)" sub="76% engagement rate" />
-        <MetricCard icon="fas fa-location-dot" iconBg="rgba(6,182,212,.15)"  iconGlow="#06b6d4" title="Confirmed Site Visits"  value={String(leads.filter(l=>l.tag!=="Cold").length || 214)} change="+32% ↑" bar={59} barColor="linear-gradient(90deg,#0891b2,#67e8f9)" sub="59% conversion rate" />
-        <MetricCard icon="fas fa-envelope"     iconBg="rgba(16,185,129,.15)" iconGlow="#10b981" title="Emails Sent"            value="9,128"              change="+24% ↑" bar={88} barColor="linear-gradient(90deg,#059669,#6ee7b7)" sub="88% delivery rate" />
+      {/* ── 2×2 Metric Grid ───────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        {CARDS.map(card => (
+          <MetricCard
+            key={card.key}
+            def={card}
+            value={stats[card.key]}
+            total={stats.total}
+            loading={stats.loading}
+          />
+        ))}
       </div>
 
-      {/* Lead breakdown pills */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <span className="text-xs text-slate-500 font-medium">Lead breakdown:</span>
-        <span className="text-xs text-red-400   bg-red-900/20   border border-red-800/40   px-2.5 py-1 rounded-full font-semibold">{hotCount}  Hot</span>
-        <span className="text-xs text-amber-400 bg-amber-900/20 border border-amber-800/40 px-2.5 py-1 rounded-full font-semibold">{warmCount} Warm</span>
-        <span className="text-xs text-blue-400  bg-blue-900/20  border border-blue-800/40  px-2.5 py-1 rounded-full font-semibold">{coldCount} Cold</span>
-        <span className="text-xs text-slate-500 ml-auto">{leads.length} total</span>
-      </div>
-
-      {/* Table */}
+      {/* ── Lead Tracker ──────────────────────────────────────── */}
       <div className="bg-slate-800/60 rounded-2xl border border-slate-700/50 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-3">
+        {/* Table header */}
+        <div className="px-4 py-3.5 border-b border-slate-700/50 flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
+            <h2 className="text-sm md:text-base font-semibold text-white flex items-center gap-2">
               Live Lead Tracker
               {syncing && <span className="text-xs text-violet-400 font-normal animate-pulse">· refreshing…</span>}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">Rohan AI-qualified · auto-refreshes every 30s</p>
+            <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">auto-refreshes every 30s · Rohan AI qualified</p>
           </div>
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2">
-            <i className="fas fa-search text-slate-500 text-xs" />
-            <input type="text" placeholder="Search leads…" value={search} onChange={e => setSearch(e.target.value)} className="bg-transparent text-sm text-slate-300 placeholder-slate-600 outline-none w-28 md:w-40" />
+          <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 flex-1 min-w-0 max-w-xs">
+            <i className="fas fa-search text-slate-500 text-xs shrink-0" />
+            <input
+              type="text"
+              placeholder="Search…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="bg-transparent text-sm text-slate-300 placeholder-slate-600 outline-none w-full min-w-0"
+            />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile: card list */}
+        <div className="md:hidden p-3 space-y-2">
+          {loading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-xl p-3.5 animate-pulse" style={{ background:"rgba(30,41,59,.5)", border:"1px solid rgba(71,85,105,.3)" }}>
+                  <div className="flex gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-700/60 shrink-0" />
+                    <div className="flex-1 space-y-2 pt-0.5">
+                      <div className="h-3.5 bg-slate-700/60 rounded w-2/3" />
+                      <div className="h-3 bg-slate-700/40 rounded w-1/2" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            : filtered.length === 0
+              ? <div className="text-center py-8 text-slate-500 text-sm">No leads match your search.</div>
+              : filtered.map((l: Lead, i: number) => <LeadCard key={l.id ?? i} lead={l} />)
+          }
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-700/50">
-                {["Lead Name","Phone","Email","BHK","Budget","AI Tag"].map(h => (
-                  <th key={h} className="text-left text-xs text-slate-500 uppercase tracking-wider px-4 py-3 font-semibold">{h}</th>
+                {["Lead Name", "Phone", "Email", "BHK", "Budget", "AI Tag"].map(h => (
+                  <th key={h} className="text-left text-xs text-slate-500 uppercase tracking-wider px-4 py-3 font-semibold">
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading
-                ? Array.from({length:5}).map((_,i) => <SkeletonRow key={i} />)
-                : filtered.map((l: Lead, i: number) => (
-                    <tr key={l.id ?? i} className="border-b border-slate-700/30 hover:bg-violet-600/5 transition-colors">
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${AVATAR_GRADIENT[l.tag] ?? AVATAR_GRADIENT.Cold} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-                            {(l.name || "?").split(" ").slice(0,2).map((n: string) => n[0]).join("")}
-                          </div>
-                          <span className="font-medium text-white">{l.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-400">{l.phone}</td>
-                      <td className="px-4 py-3.5 text-slate-500">{l.email}</td>
-                      <td className="px-4 py-3.5 text-slate-300 font-medium">{l.bhk}</td>
-                      <td className="px-4 py-3.5 text-slate-300 font-medium">{l.budget}</td>
-                      <td className="px-4 py-3.5">{TAG_BADGE[l.tag]}</td>
-                    </tr>
-                  ))
+                ? Array.from({ length: 4 }).map((_, i) => <SkeletonTableRow key={i} />)
+                : filtered.map((l: Lead, i: number) => <TableRow key={l.id ?? i} lead={l} i={i} />)
               }
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">No leads match your search.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">No leads found.</td></tr>
               )}
             </tbody>
           </table>
         </div>
 
-        <div className="px-5 py-3 border-t border-slate-700/50 flex items-center justify-between">
-          <span className="text-xs text-slate-500">Showing <span className="text-slate-300 font-semibold">{filtered.length}</span> of {leads.length} leads</span>
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-slate-700/50 flex items-center justify-between">
+          <span className="text-xs text-slate-500">
+            <span className="text-slate-300 font-semibold">{filtered.length}</span> / {leads.length} leads
+          </span>
           <div className="flex items-center gap-1">
             <button className="text-xs text-white bg-violet-600 px-3 py-1.5 rounded-lg">1</button>
-            <button className="text-xs text-slate-400 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors">2</button>
             <button className="text-xs text-slate-400 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors">Next</button>
           </div>
         </div>
