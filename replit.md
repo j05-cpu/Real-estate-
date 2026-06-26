@@ -40,11 +40,12 @@ AI-powered real estate automation SaaS dashboard for brokers to manage leads, si
 
 ## n8n Webhooks
 
-| Purpose           | URL                                                                 | Method |
-|-------------------|----------------------------------------------------------------------|--------|
-| Get Leads         | https://n8n-production-8556.up.railway.app/webhook/get-leads        | GET    |
-| Get Appointments  | https://n8n-production-8556.up.railway.app/webhook/get-appointments | GET    |
-| Update Settings   | https://n8n-production-8556.up.railway.app/webhook/update-settings  | GET    |
+| Purpose              | URL                                                                                              | Method |
+|----------------------|--------------------------------------------------------------------------------------------------|--------|
+| Get Leads            | https://n8n-production-9ad51.up.railway.app/webhook/get-leads                                   | GET    |
+| Append / Add Lead    | https://n8n-production-9ad51.up.railway.app/webhook/df1cf3a5-e51d-4790-b2a7-d7863e6cbe6c        | POST   |
+| Get Appointments     | https://n8n-production-9ad51.up.railway.app/webhook/get-appointments                            | GET    |
+| Update Settings      | https://n8n-production-9ad51.up.railway.app/webhook/update-settings                             | GET    |
 
 ## User preferences
 

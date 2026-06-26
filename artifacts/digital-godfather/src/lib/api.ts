@@ -1,7 +1,8 @@
 export const N8N_URLS = {
-  getLeads: "https://n8n-production-8556.up.railway.app/webhook/get-leads",
-  updateSettings: "https://n8n-production-8556.up.railway.app/webhook/update-settings",
-  getAppointments: "https://n8n-production-8556.up.railway.app/webhook/get-appointments",
+  getLeads:       "https://n8n-production-9ad51.up.railway.app/webhook/get-leads",
+  appendLead:     "https://n8n-production-9ad51.up.railway.app/webhook/df1cf3a5-e51d-4790-b2a7-d7863e6cbe6c",
+  getAppointments:"https://n8n-production-9ad51.up.railway.app/webhook/get-appointments",
+  updateSettings: "https://n8n-production-9ad51.up.railway.app/webhook/update-settings",
 } as const;
 
 export interface Lead {
